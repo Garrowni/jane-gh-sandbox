@@ -1,0 +1,33 @@
+name: push-with-app
+on: workflow_dispatch
+permissions:
+  contents: read # GITHUB_TOKEN stays rea-only
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - id: app-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc  # __APPTOKEN_VER__
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }} # only this repo
+          permission-contents: write # narrower than the install
+       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
+         with:
+           persist-credentials: false
+       - env:
+           TOKEN: ${{ steps.app-token.outputs.token }}
+         run: |
+           BRANCH="demo-app-${{ github.run_number }}"
+           SLUG="${{ steps.app-token.outputs.app-slug }}"
+           git config user.name "${SLUG}[bot]"
+           git config user.email "${SLUG}[bot]@users.noreply.github.com"
+           git switch -c "$BRANCH"
+           date > stamp.txt
+           git add stamp.txt
+           git commit -m "stamp via app token"
+           REMOTE="https://x-access-token:${TOKEN}@github.com/${{ github.repository }}"
+           git push "$REMOTE" "$BRANCH"
+           echo "pushed $BRANCH"
