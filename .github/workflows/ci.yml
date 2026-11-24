@@ -1,0 +1,22 @@
+name: ci
+on:
+  pull_request:
+  push: #all branches
+  workflow_dispatch:
+
+permissions:
+  contents: read #least privilege
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10 # never inherit the 360-minute defualt
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: ./scripts/test.sh
