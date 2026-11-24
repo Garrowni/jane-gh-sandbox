@@ -1,0 +1,20 @@
+name: push-with-github-token
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: |
+          BRANCH="demo-gh-token-${{ github.run_number }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          date > stamp.txt
+          git add stamp.txt
+          git commit -m "stamp via GITHUB_TOKEN"
+          git push origin "$BRANCH"
+          echo "pushed $BRANCH"
